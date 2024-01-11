@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "test-data-generation"
+version = "0.1.0"
+description = ""
+authors = ["Semaputnik <semyon.putnikov@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pydantic-settings = "^2.1.0"
+pydantic = "^2.5.3"
+pandas = "^2.1.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

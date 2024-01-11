@@ -1,0 +1,84 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:13.6
+    networks:
+      - default_net
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_sandbox:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  airflow-webserver:
+    image: airflow:latest
+    build:
+        context: .
+        dockerfile: airflow/Dockerfile
+    restart: always
+    networks:
+      - default_net
+    depends_on:
+      - postgres
+    environment:
+      LOAD_EX: n
+      EXECUTOR: Local
+    volumes:
+      - ./airflow:/usr/local/airflow/dags
+      - ./app:/usr/local/spark/app
+      - ../data:/usr/local/spark/resources
+    ports:
+      - "8080:8080" #host:container
+    command: webserver
+    healthcheck:
+      test: [ "CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]" ]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  spark-master:
+    image: bitnami/spark:latest
+    hostname: spark
+    networks:
+      - default_net
+    environment:
+      SPARK_MODE: master
+      SPARK_RPC_AUTHENTICATION_ENABLED: no
+      SPARK_RPC_ENCRYPTION_ENABLED: no
+      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: no
+      SPARK_SSL_ENABLED: no
+    command: bin/spark-class org.apache.spark.deploy.master.Master
+    volumes:
+      - ./app:/usr/local/spark/app
+      - ../data:/usr/local/spark/resources
+    ports:
+      - "9090:8080"
+      - "7077:7077"
+
+  spark-worker:
+    image: bitnami/spark:latest
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    depends_on:
+      - spark-master
+    environment:
+      SPARK_MODE: worker
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+      SPARK_MASTER_URL: spark://spark:7077
+      SPARK_RPC_AUTHENTICATION_ENABLED: no
+      SPARK_RPC_ENCRYPTION_ENABLED: no
+      SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED: no
+      SPARK_SSL_ENABLED: no
+    volumes:
+      - ./app:/usr/local/spark/app
+      - ../data:/usr/local/spark/resources
+
+volumes:
+  postgres_sandbox:
+
+networks:
+    default_net:

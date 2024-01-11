@@ -1,0 +1,9 @@
+version: "3.3"
+services:
+  data-generation:
+    build: .
+    container_name: test-data-generation
+    volumes:
+      - $PWD/../logs:/app/logs
+      - $PWD/../data/source:/app/data
+    command: python generation/main.py
