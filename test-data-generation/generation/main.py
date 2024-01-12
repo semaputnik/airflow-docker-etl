@@ -1,11 +1,8 @@
 import datetime
 import json
 import logging
-from logging import getLogger
 from logging.config import fileConfig
 from random import randint
-
-import pandas as pd
 
 from settings import Settings
 from utils import get_id, get_city_code, get_customer_app_type, get_courier_app_type, is_customer_message, \
@@ -14,12 +11,11 @@ from utils import get_id, get_city_code, get_customer_app_type, get_courier_app_
 settings = Settings()
 
 fileConfig(settings.logging_file_path, defaults={'logfilename': f"{settings.logs_dir}/test_data_generation.log"})
-logger = getLogger(__name__)
 
 
 def generate_conversation(
         customer_id: int, courier_id: int, order_id: int,
-        customer_app_type: str, courier_app_type: str, city_code: str):
+        customer_app_type: str, courier_app_type: str):
     amount_of_messages = randint(1, 10)
 
     conversation_started = True
@@ -65,7 +61,7 @@ def generate_order(order_id: int, city_code: str):
 
 
 def save_data_to_file(data: list, file_name: str):
-    date_prefix: str = datetime.datetime.now().strftime("%Y_%m_%d")
+    date_prefix: str = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
     data_path: str = f"{settings.data_path}/{file_name}_{date_prefix}.json"
     logging.info(f"Saving data to file: {data_path}")
     with open(data_path, "w") as file:
@@ -86,7 +82,7 @@ def generate_data(amount_of_conversations: int):
 
         conversation = generate_conversation(
             customer_id, courier_id, order_id,
-            customer_app_type, courier_app_type, city_code
+            customer_app_type, courier_app_type
         )
 
         customer_courier_chat_messages_content.extend(conversation)

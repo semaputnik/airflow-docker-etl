@@ -10,3 +10,15 @@ prepare:
 
 generate_data:
 	cd ./test-data-generation && docker-compose up --build -d --remove-orphans
+
+
+setup_spark:
+	cd ./etl && docker-compose up --build -d --remove-orphans
+
+
+run_spark_application:
+	cd ./etl && poetry run python ./spark_app/main.py
+
+
+shutdown_spark:
+	cd ./etl && docker-compose down
